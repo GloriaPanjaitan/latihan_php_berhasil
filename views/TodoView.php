@@ -53,10 +53,10 @@
                         <th scope="col">Tindakan</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="todo-list-body"> 
                 <?php if (!empty($todos)): ?>
                     <?php foreach ($todos as $i => $todo): ?>
-                    <tr>
+                    <tr data-id="<?= $todo['id'] ?>"> 
                         <td><?= $i + 1 ?></td>
                         <td><?= htmlspecialchars($todo['title'] ?? '') ?></td> 
                         <td>
@@ -181,7 +181,10 @@
         </div>
     </div>
 </div>
+
 <script src="<?= BASE_URL ?>assets/vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
 <script>
 // Fungsi JavaScript diperbarui untuk menangani Judul dan Deskripsi
 function showModalEditTodo(todoId, title, description, is_finished) {
@@ -198,6 +201,39 @@ function showModalDeleteTodo(todoId, title) {
     var myModal = new bootstrap.Modal(document.getElementById("deleteTodo"));
     myModal.show();
 }
+
+// KODE UNTUK DRAG AND DROP (SortableJS)
+document.addEventListener('DOMContentLoaded', (event) => {
+    var todoList = document.getElementById('todo-list-body');
+    if (todoList) {
+        new Sortable(todoList, {
+            animation: 150,
+            onEnd: function (evt) {
+                var newOrder = [];
+                todoList.querySelectorAll('tr').forEach((row, index) => {
+                    newOrder.push(row.getAttribute('data-id'));
+                });
+
+                fetch('<?= BASE_URL ?>?page=sort', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'order=' + newOrder.join(',')
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('Urutan berhasil diperbarui.');
+                    } else {
+                        console.error('Gagal memperbarui urutan:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error AJAX:', error));
+            },
+        });
+    }
+});
 </script>
 </body>
 </html>

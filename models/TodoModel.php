@@ -9,7 +9,7 @@ class TodoModel
 
     public function __construct()
     {
-        // Koneksi database yang sudah diperbaiki
+        // Koneksi database
         $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . 
 DB_USER . " password=" . DB_PASSWORD;
         $this->conn = pg_connect($conn_string);
@@ -19,23 +19,20 @@ DB_USER . " password=" . DB_PASSWORD;
         }
     }
 
-    // FUNGSI BARU: Mendapatkan semua todo dengan Filter & Search (Kebutuhan 2 & 3)
+    // Mendapatkan semua todo dengan Filter & Search (Kebutuhan 2 & 3)
     public function getAllTodos($filter_status = 'all', $search_term = '')
     {
         $conditions = [];
         $params = [];
         $param_index = 1;
 
-        // Logika Filter Status
         if ($filter_status === 'finished') {
             $conditions[] = "is_finished = TRUE";
         } elseif ($filter_status === 'unfinished') {
             $conditions[] = "is_finished = FALSE";
         }
         
-        // Logika Pencarian
         if (!empty($search_term)) {
-            // Pencarian di kolom title DAN description
             $search_condition = "(title ILIKE $" . $param_index++ . " OR description ILIKE $" . $param_index++ . ")";
             $conditions[] = $search_condition;
             $params[] = '%' . $search_term . '%';
@@ -48,7 +45,8 @@ DB_USER . " password=" . DB_PASSWORD;
             $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
 
-        $query .= ' ORDER BY updated_at DESC'; 
+        // ORDER BY POSITION (Kebutuhan 6)
+        $query .= ' ORDER BY position DESC, updated_at DESC'; 
 
         $result = pg_query_params($this->conn, $query, $params);
         $todos = [];
@@ -60,7 +58,7 @@ DB_USER . " password=" . DB_PASSWORD;
         return $todos;
     }
     
-    // FUNGSI BARU: Cek Keunikan Judul (Kebutuhan 4)
+    // Cek Keunikan Judul (Kebutuhan 4)
     public function isTitleUnique($title, $id = null)
     {
         $query = 'SELECT COUNT(*) FROM todo WHERE title = $1';
@@ -77,23 +75,26 @@ DB_USER . " password=" . DB_PASSWORD;
         return $count == 0;
     }
     
-    // FUNGSI CREATE (Diperbarui untuk title dan description)
     public function createTodo($title, $description)
     {
         if (!$this->isTitleUnique($title)) {
-            return false; // Judul sudah ada
+            return false;
         }
         
-        $query = 'INSERT INTO todo (title, description) VALUES ($1, $2)';
-        $result = pg_query_params($this->conn, $query, [$title, $description]);
+        // Dapatkan posisi tertinggi baru
+        $result = pg_query($this->conn, "SELECT MAX(position) FROM todo");
+        $max_position = pg_fetch_result($result, 0, 0) ?? 0;
+        $new_position = $max_position + 1;
+        
+        $query = 'INSERT INTO todo (title, description, position) VALUES ($1, $2, $3)';
+        $result = pg_query_params($this->conn, $query, [$title, $description, $new_position]);
         return $result !== false;
     }
     
-    // FUNGSI UPDATE (Diperbarui untuk title, description, dan is_finished)
     public function updateTodo($id, $title, $description, $is_finished)
     {
         if (!$this->isTitleUnique($title, $id)) {
-            return false; // Judul sudah ada
+            return false;
         }
         
         $query = 'UPDATE todo SET title=$1, description=$2, is_finished=$3 WHERE id=$4';
@@ -101,7 +102,6 @@ DB_USER . " password=" . DB_PASSWORD;
         return $result !== false;
     }
     
-    // FUNGSI BARU: Ambil Detail Todo (Kebutuhan 5)
     public function getTodoById($id)
     {
         $query = 'SELECT * FROM todo WHERE id = $1';
@@ -112,11 +112,29 @@ DB_USER . " password=" . DB_PASSWORD;
         return null;
     }
 
-    // FUNGSI DELETE (Tidak Berubah)
     public function deleteTodo($id)
     {
         $query = 'DELETE FROM todo WHERE id=$1';
         $result = pg_query_params($this->conn, $query, [$id]);
         return $result !== false;
+    }
+    
+    // FUNGSI BARU: Memperbarui urutan berdasarkan array ID (Kebutuhan 6)
+    public function updateSortOrder($todoIds)
+    {
+        $success = true;
+        $i = count($todoIds);
+
+        foreach ($todoIds as $id) {
+            $query = 'UPDATE todo SET position=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2';
+            $result = pg_query_params($this->conn, $query, [$i, $id]);
+            
+            if ($result === false) {
+                $success = false;
+                break; 
+            }
+            $i--;
+        }
+        return $success;
     }
 }

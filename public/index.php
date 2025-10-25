@@ -18,7 +18,7 @@ switch ($page) {
     case 'index':
         $todoController->index();
         break;
-    case 'detail': // ROUTE BARU
+    case 'detail':
         $todoController->detail();
         break;
     case 'create':
@@ -29,5 +29,8 @@ switch ($page) {
         break;
     case 'delete':
         $todoController->delete();
+        break;
+    case 'sort': // ROUTE UNTUK DRAG & DROP AJAX
+        $todoController->sort();
         break;
 }
