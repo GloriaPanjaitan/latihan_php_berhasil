@@ -56,7 +56,7 @@
                 <tbody id="todo-list-body"> 
                 <?php if (!empty($todos)): ?>
                     <?php foreach ($todos as $i => $todo): ?>
-                    <tr data-id="<?= $todo['id'] ?>"> 
+                    <tr data-id="<?= $todo['id'] ?>">  
                         <td><?= $i + 1 ?></td>
                         <td><?= htmlspecialchars($todo['title'] ?? '') ?></td> 
                         <td>

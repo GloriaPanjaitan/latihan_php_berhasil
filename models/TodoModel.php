@@ -87,7 +87,7 @@ DB_USER . " password=" . DB_PASSWORD;
     }
     
     // FUNGSI UPDATE DENGAN PERBAIKAN TIPE DATA STRING 'true'/'false'
-    public function updateTodo($id, $title, $description, $is_finished) // $is_finished adalah string 'true'/'false'
+    public function updateTodo($id, $title, $description, $is_finished) // $is_finished adalah string 'true'/'false' dari Controller
     {
         if (!$this->isTitleUnique($title, $id)) {
             return false;
@@ -96,7 +96,6 @@ DB_USER . " password=" . DB_PASSWORD;
         // $is_finished langsung digunakan karena sudah dikonversi di Controller
         $query = 'UPDATE todo SET title=$1, description=$2, is_finished=$3 WHERE id=$4';
         
-        // Parameter $is_finished harus berupa string 'true' atau 'false'
         $result = pg_query_params($this->conn, $query, [$title, $description, $is_finished, $id]); 
         
         return $result !== false;
