@@ -1,23 +1,53 @@
+<?php
+// File: views/TodoView.php
+// Variabel $filter, $search, $todos, dan $message berasal dari TodoController::index()
+?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>PHP - Aplikasi Todolist</title>
-    <link href="/assets/vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 </head>
 <body>
 <div class="container-fluid p-5">
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
+            
+            <?php if (!empty($message)): ?>
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($message) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Todo List</h1>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTodo">Tambah Data</button>
             </div>
+            
+            <form method="GET" action="<?= BASE_URL ?>" class="mb-4">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select class="form-select" name="filter" onchange="this.form.submit()">
+                            <option value="all" <?= $filter === 'all' ? 'selected' : '' ?>>Semua Status</option>
+                            <option value="finished" <?= $filter === 'finished' ? 'selected' : '' ?>>Selesai</option>
+                            <option value="unfinished" <?= $filter === 'unfinished' ? 'selected' : '' ?>>Belum Selesai</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <input type="text" name="search" class="form-control" placeholder="Cari Judul atau Deskripsi..." value="<?= htmlspecialchars($search) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100">Cari</button>
+                    </div>
+                </div>
+            </form>
             <hr />
             <table class="table table-striped">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Aktivitas</th>
+                        <th scope="col">Judul</th>
                         <th scope="col">Status</th>
                         <th scope="col">Tanggal Dibuat</th>
                         <th scope="col">Tindakan</th>
@@ -28,9 +58,9 @@
                     <?php foreach ($todos as $i => $todo): ?>
                     <tr>
                         <td><?= $i + 1 ?></td>
-                        <td><?= htmlspecialchars($todo['activity']) ?></td>
+                        <td><?= htmlspecialchars($todo['title'] ?? '') ?></td> 
                         <td>
-                            <?php if ($todo['status']): ?>
+                            <?php if ($todo['is_finished'] ?? false): ?>
                                 <span class="badge bg-success">Selesai</span>
                             <?php else: ?>
                                 <span class="badge bg-danger">Belum Selesai</span>
@@ -38,12 +68,20 @@
                         </td>
                         <td><?= date('d F Y - H:i', strtotime($todo['created_at'])) ?></td>
                         <td>
+                            <a href="<?= BASE_URL ?>?page=detail&id=<?= $todo['id'] ?>" class="btn btn-sm btn-info text-white">Detail</a>
+                            
                             <button class="btn btn-sm btn-warning"
-                                onclick="showModalEditTodo(<?= $todo['id'] ?>, '<?= htmlspecialchars(addslashes($todo['activity'])) ?>', <?= $todo['status'] ?>)">
+                                onclick="showModalEditTodo(
+                                    <?= $todo['id'] ?>, 
+                                    '<?= htmlspecialchars(addslashes($todo['title'] ?? '')) ?>', 
+                                    '<?= htmlspecialchars(addslashes($todo['description'] ?? '')) ?>', 
+                                    '<?= ($todo['is_finished'] ?? false) ? '1' : '0' ?>' 
+                                )">
                                 Ubah
                             </button>
+                            
                             <button class="btn btn-sm btn-danger"
-                                onclick="showModalDeleteTodo(<?= $todo['id'] ?>, '<?= htmlspecialchars(addslashes($todo['activity'])) ?>')">
+                                onclick="showModalDeleteTodo(<?= $todo['id'] ?>, '<?= htmlspecialchars(addslashes($todo['title'] ?? '')) ?>')">
                                 Hapus
                             </button>
                         </td>
@@ -59,8 +97,6 @@
         </div>
     </div>
 </div>
-
-<!-- MODAL ADD TODO -->
 <div class="modal fade" id="addTodo" tabindex="-1" aria-labelledby="addTodoLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -71,9 +107,14 @@
             <form action="?page=create" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="inputActivity" class="form-label">Aktivitas</label>
-                        <input type="text" name="activity" class="form-control" id="inputActivity"
+                        <label for="inputTitle" class="form-label">Judul Todo</label>
+                        <input type="text" name="title" class="form-control" id="inputTitle"
                             placeholder="Contoh: Belajar membuat aplikasi website sederhana" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputDescription" class="form-label">Deskripsi</label>
+                        <textarea name="description" class="form-control" id="inputDescription" rows="3"
+                            placeholder="Tulis deskripsi detail todo di sini (Opsional)"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -84,8 +125,6 @@
         </div>
     </div>
 </div>
-
-<!-- MODAL EDIT TODO -->
 <div class="modal fade" id="editTodo" tabindex="-1" aria-labelledby="editTodoLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -97,13 +136,18 @@
                 <input name="id" type="hidden" id="inputEditTodoId">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="inputEditActivity" class="form-label">Aktivitas</label>
-                        <input type="text" name="activity" class="form-control" id="inputEditActivity"
-                            placeholder="Contoh: Belajar membuat aplikasi website sederhana" required>
+                        <label for="inputEditTitle" class="form-label">Judul Todo</label>
+                        <input type="text" name="title" class="form-control" id="inputEditTitle"
+                            placeholder="Judul Todo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputEditDescription" class="form-label">Deskripsi</label>
+                        <textarea name="description" class="form-control" id="inputEditDescription" rows="3"
+                            placeholder="Deskripsi detail"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="selectEditStatus" class="form-label">Status</label>
-                        <select class="form-select" name="status" id="selectEditStatus">
+                        <select class="form-select" name="is_finished" id="selectEditStatus">
                             <option value="0">Belum Selesai</option>
                             <option value="1">Selesai</option>
                         </select>
@@ -117,8 +161,6 @@
         </div>
     </div>
 </div>
-
-<!-- MODAL DELETE TODO -->
 <div class="modal fade" id="deleteTodo" tabindex="-1" aria-labelledby="deleteTodoLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -128,7 +170,7 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    Kamu akan menghapus todo <strong class="text-danger" id="deleteTodoActivity"></strong>.
+                    Kamu akan menghapus todo <strong class="text-danger" id="deleteTodoTitle"></strong>.
                     Apakah kamu yakin?
                 </div>
             </div>
@@ -139,18 +181,19 @@
         </div>
     </div>
 </div>
-
-<script src="/assets/vendor/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
+<script src="<?= BASE_URL ?>assets/vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function showModalEditTodo(todoId, activity, status) {
+// Fungsi JavaScript diperbarui untuk menangani Judul dan Deskripsi
+function showModalEditTodo(todoId, title, description, is_finished) {
     document.getElementById("inputEditTodoId").value = todoId;
-    document.getElementById("inputEditActivity").value = activity;
-    document.getElementById("selectEditStatus").value = status;
+    document.getElementById("inputEditTitle").value = title;
+    document.getElementById("inputEditDescription").value = description;
+    document.getElementById("selectEditStatus").value = is_finished;
     var myModal = new bootstrap.Modal(document.getElementById("editTodo"));
     myModal.show();
 }
-function showModalDeleteTodo(todoId, activity) {
-    document.getElementById("deleteTodoActivity").innerText = activity;
+function showModalDeleteTodo(todoId, title) {
+    document.getElementById("deleteTodoTitle").innerText = title;
     document.getElementById("btnDeleteTodo").setAttribute("href", `?page=delete&id=${todoId}`);
     var myModal = new bootstrap.Modal(document.getElementById("deleteTodo"));
     myModal.show();
