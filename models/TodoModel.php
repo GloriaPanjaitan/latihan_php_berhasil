@@ -9,7 +9,6 @@ class TodoModel
 
     public function __construct()
     {
-        // Koneksi database
         $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . 
 DB_USER . " password=" . DB_PASSWORD;
         $this->conn = pg_connect($conn_string);
@@ -19,7 +18,6 @@ DB_USER . " password=" . DB_PASSWORD;
         }
     }
 
-    // Mendapatkan semua todo dengan Filter & Search (Kebutuhan 2 & 3)
     public function getAllTodos($filter_status = 'all', $search_term = '')
     {
         $conditions = [];
@@ -45,7 +43,6 @@ DB_USER . " password=" . DB_PASSWORD;
             $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
 
-        // ORDER BY POSITION (Kebutuhan 6)
         $query .= ' ORDER BY position DESC, updated_at DESC'; 
 
         $result = pg_query_params($this->conn, $query, $params);
@@ -58,7 +55,6 @@ DB_USER . " password=" . DB_PASSWORD;
         return $todos;
     }
     
-    // Cek Keunikan Judul (Kebutuhan 4)
     public function isTitleUnique($title, $id = null)
     {
         $query = 'SELECT COUNT(*) FROM todo WHERE title = $1';
@@ -81,7 +77,6 @@ DB_USER . " password=" . DB_PASSWORD;
             return false;
         }
         
-        // Dapatkan posisi tertinggi baru
         $result = pg_query($this->conn, "SELECT MAX(position) FROM todo");
         $max_position = pg_fetch_result($result, 0, 0) ?? 0;
         $new_position = $max_position + 1;
@@ -91,14 +86,19 @@ DB_USER . " password=" . DB_PASSWORD;
         return $result !== false;
     }
     
-    public function updateTodo($id, $title, $description, $is_finished)
+    // FUNGSI UPDATE DENGAN PERBAIKAN TIPE DATA STRING 'true'/'false'
+    public function updateTodo($id, $title, $description, $is_finished) // $is_finished adalah string 'true'/'false'
     {
         if (!$this->isTitleUnique($title, $id)) {
             return false;
         }
         
+        // $is_finished langsung digunakan karena sudah dikonversi di Controller
         $query = 'UPDATE todo SET title=$1, description=$2, is_finished=$3 WHERE id=$4';
-        $result = pg_query_params($this->conn, $query, [$title, $description, $is_finished, $id]);
+        
+        // Parameter $is_finished harus berupa string 'true' atau 'false'
+        $result = pg_query_params($this->conn, $query, [$title, $description, $is_finished, $id]); 
+        
         return $result !== false;
     }
     
@@ -119,7 +119,6 @@ DB_USER . " password=" . DB_PASSWORD;
         return $result !== false;
     }
     
-    // FUNGSI BARU: Memperbarui urutan berdasarkan array ID (Kebutuhan 6)
     public function updateSortOrder($todoIds)
     {
         $success = true;

@@ -15,7 +15,7 @@ class TodoController
 
         $todos = $todoModel->getAllTodos($filter, $search);
         $message = self::$message;
-        self::$message = ''; // Bersihkan pesan setelah ditampilkan
+        self::$message = '';
         
         include (__DIR__ . '/../views/TodoView.php');
     }
@@ -59,18 +59,28 @@ class TodoController
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = $_POST['id'];
-            $title = $_POST['title'] ?? '';
-            $description = $_POST['description'] ?? '';
-            $is_finished = (bool)($_POST['is_finished'] ?? 0); 
+            $id = $_POST['id'] ?? null; 
             
-            $todoModel = new TodoModel();
-            $result = $todoModel->updateTodo($id, $title, $description, $is_finished);
-
-            if ($result === false) {
-                 self::$message = 'Gagal: Judul "' . htmlspecialchars($title) . '" sudah ada atau terjadi kesalahan database.';
+            if (empty($id)) {
+                 self::$message = 'Error: ID data tidak terkirim atau tidak valid.';
             } else {
-                self::$message = 'Sukses: Todo berhasil diperbarui.';
+                $title = $_POST['title'] ?? '';
+                $description = $_POST['description'] ?? '';
+                
+                // PERBAIKAN UTAMA: Ambil nilai '0' atau '1' dan konversi ke string 'true' atau 'false'
+                $form_is_finished = $_POST['is_finished'] ?? '0';
+                $is_finished_value = ($form_is_finished === '1') ? 'true' : 'false'; 
+                
+                $todoModel = new TodoModel();
+                
+                // Kirim nilai string 'true' atau 'false' ke Model
+                $result = $todoModel->updateTodo($id, $title, $description, $is_finished_value);
+
+                if ($result === false) {
+                    self::$message = 'Gagal: Judul "' . htmlspecialchars($title) . '" sudah ada atau terjadi kesalahan database.';
+                } else {
+                    self::$message = 'Sukses: Todo berhasil diperbarui.';
+                }
             }
         }
         header('Location: ' . BASE_URL);
@@ -89,7 +99,6 @@ class TodoController
         exit;
     }
     
-    // FUNGSI UNTUK DRAG & DROP AJAX (Kebutuhan 6)
     public function sort()
     {
         header('Content-Type: application/json');
