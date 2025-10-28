@@ -60,7 +60,7 @@
                         <td><?= $i + 1 ?></td>
                         <td><?= htmlspecialchars($todo['title'] ?? '') ?></td> 
                         <td>
-                            <?php if ($todo['is_finished'] ?? false): ?>
+                            <?php if (($todo['is_finished'] ?? 'f') === 't'): ?>
                                 <span class="badge bg-success">Selesai</span>
                             <?php else: ?>
                                 <span class="badge bg-danger">Belum Selesai</span>

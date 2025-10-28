@@ -27,13 +27,13 @@ if (!isset($todo)) {
                 <?= nl2br(htmlspecialchars($todo['description'])) ?>
             </p>
             <p>
-                <strong>Status:</strong>
-                <?php if ($todo['is_finished']): ?>
-                    <span class="badge bg-success">Selesai</span>
-                <?php else: ?>
-                    <span class="badge bg-danger">Belum Selesai</span>
-                <?php endif; ?>
-            </p>
+    <strong>Status:</strong>
+    <?php if (($todo['is_finished'] ?? 'f') === 't'): ?>
+        <span class="badge bg-success">Selesai</span>
+    <?php else: ?>
+        <span class="badge bg-danger">Belum Selesai</span>
+    <?php endif; ?>
+</p>
             <p class="text-muted small">
                 Dibuat: <?= date('d F Y H:i', strtotime($todo['created_at'])) ?><br>
                 Diperbarui: <?= date('d F Y H:i', strtotime($todo['updated_at'])) ?>
