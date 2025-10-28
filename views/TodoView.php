@@ -7,6 +7,17 @@
 <head>
     <title>PHP - Aplikasi Todolist</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <style>
+        /* Ganti kode warna (#f0f8ff) sesuai dengan warna yang Anda inginkan */
+        body {
+            background-color: #f6f7a7ff; /* Contoh: Warna Biru Muda (AliceBlue) */
+        }
+
+        /* Opsi tambahan: Mengubah warna latar belakang Card utama agar sedikit transparan atau tetap putih */
+        .card {
+            background-color: #97eef0ff; /* Pastikan Card tetap putih agar kontras */
+        }
+    </style>
 </head>
 <body>
 <div class="container-fluid p-5">
