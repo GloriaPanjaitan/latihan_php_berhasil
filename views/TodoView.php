@@ -5,18 +5,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    
     <title>PHP - Aplikasi Todolist</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <style>
         /* Ganti kode warna (#f0f8ff) sesuai dengan warna yang Anda inginkan */
         body {
             background-color: #f6f7a7ff; /* Contoh: Warna Biru Muda (AliceBlue) */
+            text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
         }
 
         /* Opsi tambahan: Mengubah warna latar belakang Card utama agar sedikit transparan atau tetap putih */
         .card {
             background-color: #97eef0ff; /* Pastikan Card tetap putih agar kontras */
         }
+        
+        
     </style>
 </head>
 <body>
@@ -39,11 +46,14 @@
             <form method="GET" action="<?= BASE_URL ?>" class="mb-4">
                 <div class="row g-2">
                     <div class="col-md-3">
-                        <select class="form-select" name="filter" onchange="this.form.submit()">
-                            <option value="all" <?= $filter === 'all' ? 'selected' : '' ?>>Semua Status</option>
-                            <option value="finished" <?= $filter === 'finished' ? 'selected' : '' ?>>Selesai</option>
-                            <option value="unfinished" <?= $filter === 'unfinished' ? 'selected' : '' ?>>Belum Selesai</option>
-                        </select>
+                            <select 
+    class="form-select" 
+    name="filter" 
+    onchange="this.form.submit()"
+    aria-label="Filter Status Tugas"> <option value="all" <?= $filter === 'all' ? 'selected' : '' ?>>Semua Status</option>
+    <option value="finished" <?= $filter === 'finished' ? 'selected' : '' ?>>Selesai</option>
+    <option value="unfinished" <?= $filter === 'unfinished' ? 'selected' : '' ?>>Belum Selesai</option>
+</select>
                     </div>
                     <div class="col-md-7">
                         <input type="text" name="search" class="form-control" placeholder="Cari Judul atau Deskripsi..." value="<?= htmlspecialchars($search) ?>">
