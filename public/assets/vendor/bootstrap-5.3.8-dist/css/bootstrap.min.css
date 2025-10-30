@@ -7,6 +7,5 @@
 body {
     --bs-blue: #0d6efd; 
     /* ... properti lain ... */
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%; /* TAMBAHKAN INI */
+    
 }
