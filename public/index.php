@@ -2,7 +2,7 @@
 // File: public/index.php
 
 // Definisikan BASE_URL untuk aset, link, dan redirection
-define('BASE_URL', 'http://localhost:8000/'); 
+define('BASE_URL', 'https://latihan-php.ifs23030.space/'); 
 
 if (isset($_GET['page'])) {
     $page = $_GET['page'];
